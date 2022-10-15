@@ -36,14 +36,12 @@ class CartActor extends Actor {
 
   def receive: Receive = LoggingReceive {
     case AddItem(item) =>
-      val cart = Cart.empty
-      context become nonEmpty(cart.addItem(item), scheduleTimer)
+      context become nonEmpty(Cart.empty.addItem(item), scheduleTimer)
   }
 
   def empty: Receive = LoggingReceive {
     case AddItem(item) =>
-      val cart = Cart.empty
-      context become nonEmpty(cart.addItem(item), scheduleTimer)
+      context become nonEmpty(Cart.empty.addItem(item), scheduleTimer)
   }
 
   def nonEmpty(cart: Cart, timer: Cancellable): Receive = LoggingReceive {
