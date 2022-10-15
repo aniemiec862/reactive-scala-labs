@@ -49,10 +49,8 @@ class Checkout extends Actor {
     case CancelCheckout =>
       timer.cancel()
       context become cancelled
-
     case ExpireCheckout =>
       context become cancelled
-
     case SelectDeliveryMethod(_) =>
       context become selectingPaymentMethod(timer)
   }
@@ -61,10 +59,8 @@ class Checkout extends Actor {
     case CancelCheckout =>
       timer.cancel()
       context become cancelled
-
     case ExpireCheckout =>
       context become cancelled
-
     case SelectPayment(_) =>
       timer.cancel()
       context become processingPayment(
@@ -76,10 +72,8 @@ class Checkout extends Actor {
     case CancelCheckout =>
       timer.cancel()
       context become cancelled
-
     case ExpirePayment =>
       context become cancelled
-
     case ConfirmPaymentReceived =>
       timer.cancel()
       context become closed

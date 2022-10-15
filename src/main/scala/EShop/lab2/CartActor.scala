@@ -51,6 +51,7 @@ class CartActor extends Actor {
     case RemoveItem(item) =>
       val newCart = cart.removeItem(item)
       if (newCart.size == 0 ){
+        timer.cancel()
         context become empty
       } else {
         if (newCart.size < cart.size)
@@ -60,7 +61,6 @@ class CartActor extends Actor {
     case ExpireCart =>
       timer.cancel()
       context become empty
-
     case StartCheckout =>
       timer.cancel()
       context become inCheckout(cart)
@@ -69,7 +69,6 @@ class CartActor extends Actor {
   def inCheckout(cart: Cart): Receive = LoggingReceive {
     case ConfirmCheckoutCancelled =>
       context become nonEmpty(cart, scheduleTimer)
-
     case ConfirmCheckoutClosed =>
       context become empty
   }
