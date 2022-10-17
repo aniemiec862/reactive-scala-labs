@@ -44,15 +44,16 @@ class TypedCartActor {
       case AddItem(item) =>
         nonEmpty(cart.addItem(item), scheduleTimer(context))
       case RemoveItem(item) =>
-        val newCart = cart.removeItem(item)
-        if (newCart.size == 0) {
-          timer.cancel()
-          empty
+        if (cart.contains(item)) {
+          val newCart = cart.removeItem(item)
+          if (newCart.size == 0) {
+            timer.cancel()
+            empty
+          } else {
+              nonEmpty(newCart, timer)
+          }
         } else {
-          if (newCart.size < cart.size)
-            nonEmpty(newCart, timer)
-          else
-            Behaviors.same
+          Behaviors.same
         }
       case ExpireCart =>
         timer.cancel()
