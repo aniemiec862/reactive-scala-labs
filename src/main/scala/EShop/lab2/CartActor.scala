@@ -1,6 +1,6 @@
 package EShop.lab2
 
-import akka.actor.{Actor, ActorRef, Cancellable, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
 import akka.event.{Logging, LoggingReceive}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -47,17 +47,16 @@ class CartActor extends Actor {
   def nonEmpty(cart: Cart, timer: Cancellable): Receive = LoggingReceive {
     case AddItem(item) =>
       context become nonEmpty(cart.addItem(item), timer)
-
     case RemoveItem(item) =>
-      val newCart = cart.removeItem(item)
-      if (newCart.size == 0 ){
-        timer.cancel()
-        context become empty
-      } else {
-        if (newCart.size < cart.size)
+      if (cart.contains(item)) {
+        val newCart = cart.removeItem(item)
+        if (newCart.size == 0 ){
+          timer.cancel()
+          context become empty
+        } else {
           context become nonEmpty(newCart, timer)
+        }
       }
-
     case ExpireCart =>
       timer.cancel()
       context become empty
@@ -73,4 +72,22 @@ class CartActor extends Actor {
       context become empty
   }
 
+}
+
+object CartActorApp extends App {
+  val actorSystem = ActorSystem("cartSystem")
+  val cartActor   = actorSystem.actorOf(Props[CartActor], "cartActor")
+
+  import CartActor._
+
+  cartActor ! AddItem("Item1")
+  cartActor ! AddItem("Item2")
+  cartActor ! RemoveItem("Item2")
+  cartActor ! StartCheckout
+  cartActor ! ConfirmCheckoutClosed
+  cartActor ! AddItem("Item3")
+  cartActor ! ExpireCart
+
+  Thread.sleep(1000)
+  sys.exit()
 }

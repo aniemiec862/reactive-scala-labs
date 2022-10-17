@@ -1,7 +1,7 @@
 package EShop.lab2
 
 import EShop.lab2.Checkout._
-import akka.actor.{Actor, ActorRef, Cancellable, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Cancellable, Props}
 import akka.event.{Logging, LoggingReceive}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -89,4 +89,18 @@ class Checkout extends Actor {
       context stop self
   }
 
+}
+
+object CheckoutActorApp extends App {
+  val actorSystem = ActorSystem("checkoutSystem")
+  val checkoutActor    = actorSystem.actorOf(Props[Checkout], "checkoutActor")
+
+  import Checkout._
+
+  checkoutActor ! StartCheckout
+  checkoutActor ! SelectDeliveryMethod("FedEx")
+  checkoutActor ! SelectPayment("Transfer")
+  checkoutActor ! ConfirmPaymentReceived
+  Thread.sleep(1000)
+  sys.exit()
 }
