@@ -9,6 +9,11 @@ import scala.concurrent.duration._
 import EShop.lab3.OrderManager
 
 object TypedCartActor {
+  def apply(): Behavior[TypedCartActor.Command] = Behaviors.setup(
+    _ => {
+      new TypedCartActor().start
+    }
+  )
 
   sealed trait Command
   case class AddItem(item: Any)                                             extends Command
@@ -61,8 +66,10 @@ class TypedCartActor {
       case ExpireCart =>
         timer.cancel()
         empty
-      case StartCheckout =>
+      case StartCheckout(orderManagerRef: ActorRef[Any]) =>
         timer.cancel()
+        val checkout = context.spawn(TypedCheckout(context.self), "checkout")
+        orderManagerRef ! CheckoutStarted(checkout)
         inCheckout(cart)
     }
   )
