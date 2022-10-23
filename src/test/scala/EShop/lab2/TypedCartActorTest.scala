@@ -1,6 +1,6 @@
 package EShop.lab2
 
-import EShop.lab2.lab3.OrderManager
+import EShop.lab3.OrderManager
 import akka.actor.Cancellable
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, ScalaTestWithActorTestKit}
 import akka.actor.typed.{ActorRef, Behavior}

@@ -1,6 +1,6 @@
 package EShop.lab2
 
-import EShop.lab2.lab3.OrderManager
+import EShop.lab3.OrderManager
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, ScalaTestWithActorTestKit}
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.Cancellable
@@ -8,7 +8,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.BeforeAndAfterAll
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.{FiniteDuration, _}
 
 class TypedCheckoutTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike with BeforeAndAfterAll {
 

@@ -1,1 +1,3 @@
-# reactive-lab
+# reactive-scala-labs
+
+*Adam Niemiec*

@@ -1,4 +1,4 @@
-package EShop.lab2.lab3
+package EShop.lab3
 
 import EShop.lab2.TypedCheckout
 import akka.actor.typed.scaladsl.Behaviors
