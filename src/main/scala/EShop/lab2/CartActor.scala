@@ -46,7 +46,8 @@ class CartActor extends Actor {
 
   def nonEmpty(cart: Cart, timer: Cancellable): Receive = LoggingReceive {
     case AddItem(item) =>
-      context become nonEmpty(cart.addItem(item), timer)
+      timer.cancel()
+      context become nonEmpty(cart.addItem(item), scheduleTimer)
     case RemoveItem(item) =>
       if (cart.contains(item)) {
         val newCart = cart.removeItem(item)
@@ -54,7 +55,8 @@ class CartActor extends Actor {
           timer.cancel()
           context become empty
         } else {
-          context become nonEmpty(newCart, timer)
+          timer.cancel()
+          context become nonEmpty(newCart, scheduleTimer)
         }
       }
     case ExpireCart =>
