@@ -11,7 +11,7 @@ object Payment {
 
   def apply(
              method: String,
-             orderManager: ActorRef[Any],
+             orderManager: ActorRef[OrderManager.Command],
              checkout: ActorRef[TypedCheckout.Command]
            ): Behavior[Payment.Command] =
     Behaviors.setup(
@@ -35,5 +35,4 @@ class Payment(
       checkout ! TypedCheckout.ConfirmPaymentReceived
       Behaviors.stopped
   }
-
 }

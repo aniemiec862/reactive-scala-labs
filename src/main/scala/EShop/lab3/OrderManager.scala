@@ -24,16 +24,7 @@ class OrderManager {
 
   import OrderManager._
 
-  var checkoutAdapter: ActorRef[TypedCheckout.Event] = _
-  var cartActorAdapter: ActorRef[TypedCartActor.Event] = _
-
   def start: Behavior[OrderManager.Command] = Behaviors.setup { context =>
-    checkoutAdapter = context.messageAdapter {
-      case TypedCheckout.PaymentStarted(paymentRef) => ConfirmPaymentStarted(paymentRef)
-    }
-    cartActorAdapter = context.messageAdapter {
-      case TypedCartActor.CheckoutStarted(checkoutRef) => ConfirmCheckoutStarted(checkoutRef)
-    }
     val cartActor = context.spawn(TypedCartActor(), "cartActor")
     open(cartActor)
   }
