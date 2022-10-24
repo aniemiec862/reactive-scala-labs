@@ -75,6 +75,7 @@ class TypedCartActor {
       case StartCheckout(orderManagerRef: ActorRef[OrderManager.Command]) =>
         timer.cancel()
         val checkout = context.spawn(TypedCheckout(context.self), "checkout")
+        checkout ! TypedCheckout.StartCheckout
         orderManagerRef ! OrderManager.ConfirmCheckoutStarted(checkout)
         inCheckout(cart)
     }

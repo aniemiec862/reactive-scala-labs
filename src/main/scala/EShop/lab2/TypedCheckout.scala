@@ -43,6 +43,8 @@ class TypedCheckout(
   val checkoutTimerDuration: FiniteDuration = 1 seconds
   val paymentTimerDuration: FiniteDuration  = 1 seconds
 
+  var orderManagerRef: ActorRef[OrderManager.Command] = _
+
   def start: Behavior[TypedCheckout.Command] = Behaviors.receive((context, msg) =>
     msg match {
       case StartCheckout =>
@@ -69,6 +71,7 @@ class TypedCheckout(
         cancelled
       case SelectPayment(payment: String, orderManagerRef: ActorRef[OrderManager.Command]) =>
         timer.cancel()
+        this.orderManagerRef = orderManagerRef
         val paymentRef = context.spawn(Payment(payment, orderManagerRef, context.self), "payment")
         orderManagerRef ! OrderManager.ConfirmPaymentStarted(paymentRef)
         processingPayment(context.scheduleOnce(paymentTimerDuration, context.self, ExpirePayment))
@@ -82,6 +85,7 @@ class TypedCheckout(
       cancelled
     case ConfirmPaymentReceived =>
       timer.cancel()
+      this.orderManagerRef ! OrderManager.ConfirmPaymentReceived
       cartActor ! TypedCartActor.ConfirmCheckoutClosed
       closed
   }
