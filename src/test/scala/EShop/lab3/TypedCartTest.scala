@@ -70,7 +70,7 @@ class TypedCartTest
     val inbox = TestInbox[OrderManager.Command]()
 
     cartActorTestKit.run(AddItem("item1"))
-    cartActorTestKit.run(StartCheckout(inbox.ref))
+    cartActorTestKit.run(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
 
     assert(inbox.hasMessages)
     val message = inbox.receiveMessage()
@@ -82,7 +82,7 @@ class TypedCartTest
     val orderManagerProbe = testKit.createTestProbe[OrderManager.Command]()
 
     cartActor ! AddItem("item1")
-    cartActor ! StartCheckout(orderManagerProbe.ref)
+    cartActor ! StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref)
 
     orderManagerProbe.expectMessageType[OrderManager.ConfirmCheckoutStarted]
   }

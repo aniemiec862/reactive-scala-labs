@@ -2,6 +2,7 @@ package EShop.lab3
 
 import EShop.lab2.{TypedCartActor, TypedCheckout}
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
+import akka.actor.typed.ActorRef
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
@@ -21,7 +22,7 @@ class TypedCheckoutTest
 
   it should "Send close confirmation to cart" in {
     val cartProbe = testKit.createTestProbe[TypedCartActor.Command]()
-    val orderManagerProbe = testKit.createTestProbe[OrderManager.Command]()
+    val orderManagerProbe = testKit.createTestProbe[TypedCheckout.Event]()
     val checkoutActor = testKit.spawn(TypedCheckout(cartProbe.ref), "checkout")
 
     checkoutActor ! StartCheckout

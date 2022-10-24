@@ -20,7 +20,7 @@ object TypedCheckout {
   case class SelectDeliveryMethod(method: String)                                            extends Command
   case object CancelCheckout                                                                 extends Command
   case object ExpireCheckout                                                                 extends Command
-  case class SelectPayment(payment: String, orderManagerRef: ActorRef[OrderManager.Command]) extends Command
+  case class SelectPayment(payment: String, orderManagerRef: ActorRef[Event]) extends Command
   case object ExpirePayment                                                                  extends Command
   case object ConfirmPaymentReceived                                                         extends Command
 
@@ -69,7 +69,7 @@ class TypedCheckout(
         cancelled
       case ExpireCheckout =>
         cancelled
-      case SelectPayment(payment: String, orderManagerRef: ActorRef[OrderManager.Command]) =>
+      case SelectPayment(payment: String, orderManagerRef: ActorRef[Any]) =>
         timer.cancel()
         this.orderManagerRef = orderManagerRef
         val paymentRef = context.spawn(Payment(payment, orderManagerRef, context.self), "payment")

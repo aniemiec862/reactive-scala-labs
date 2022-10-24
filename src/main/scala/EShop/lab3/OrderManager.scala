@@ -24,7 +24,18 @@ class OrderManager {
 
   import OrderManager._
 
+  var checkoutAdapter: ActorRef[TypedCheckout.Event]   = _
+  var cartActorAdapter: ActorRef[TypedCartActor.Event] = _
+
   def start: Behavior[OrderManager.Command] = Behaviors.setup { context =>
+    cartActorAdapter = context.messageAdapter {
+      case TypedCartActor.CheckoutStarted(checkoutRef) => ConfirmCheckoutStarted(checkoutRef)
+    }
+
+    checkoutAdapter = context.messageAdapter {
+      case TypedCheckout.PaymentStarted(paymentRef) => ConfirmPaymentStarted(paymentRef)
+    }
+
     val cartActor = context.spawn(TypedCartActor(), "cartActor")
     open(cartActor)
   }
@@ -50,8 +61,8 @@ class OrderManager {
     cartActorRef: ActorRef[TypedCartActor.Command],
     senderRef: ActorRef[Ack]
   ): Behavior[OrderManager.Command] =
-    Behaviors.setup { context =>
-      cartActorRef ! TypedCartActor.StartCheckout(context.self)
+    Behaviors.setup { _ =>
+      cartActorRef ! TypedCartActor.StartCheckout(cartActorAdapter)
       Behaviors.receiveMessage {
         case OrderManager.ConfirmCheckoutStarted(checkoutRef) =>
           senderRef ! Done
@@ -65,7 +76,7 @@ class OrderManager {
     msg match {
     case OrderManager.SelectDeliveryAndPaymentMethod(delivery, payment, sender) =>
       checkoutActorRef ! TypedCheckout.SelectDeliveryMethod(delivery)
-      checkoutActorRef ! TypedCheckout.SelectPayment(payment, context.self)
+      checkoutActorRef ! TypedCheckout.SelectPayment(payment, checkoutAdapter)
       inPayment(sender)
     case _ =>
       Behaviors.same
