@@ -85,7 +85,6 @@ class TypedCheckout(
       cancelled
     case ConfirmPaymentReceived =>
       timer.cancel()
-      this.orderManagerRef ! OrderManager.ConfirmPaymentReceived
       cartActor ! TypedCartActor.ConfirmCheckoutClosed
       closed
   }

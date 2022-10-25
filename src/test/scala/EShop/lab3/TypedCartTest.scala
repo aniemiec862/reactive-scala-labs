@@ -1,5 +1,6 @@
 package EShop.lab3
 
+import EShop.lab2
 import EShop.lab2.{Cart, TypedCartActor, TypedCheckout}
 import akka.actor.testkit.typed.Effect.{Spawned, TimerCancelled, TimerScheduled}
 import akka.actor.testkit.typed.scaladsl.{BehaviorTestKit, ScalaTestWithActorTestKit, TestInbox}
@@ -67,23 +68,24 @@ class TypedCartTest
 
   it should "start checkout in sync" in {
     val cartActorTestKit = BehaviorTestKit(TypedCartActor())
-    val inbox = TestInbox[OrderManager.Command]()
+    val inbox = TestInbox[TypedCartActor.Command]()
 
     cartActorTestKit.run(AddItem("item1"))
     cartActorTestKit.run(StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref))
 
     assert(inbox.hasMessages)
     val message = inbox.receiveMessage()
-    assert(message.isInstanceOf[OrderManager.ConfirmCheckoutStarted])
+    assert(message.isInstanceOf[TypedCartActor.CheckoutStarted])
   }
 
   it should "start checkout in async" in {
     val cartActor = testKit.spawn(TypedCartActor(), "cartActor")
-    val orderManagerProbe = testKit.createTestProbe[OrderManager.Command]()
+    val cartActorProbe = testKit.createTestProbe[TypedCartActor.Command]()
+    val checkoutProbe = testKit.createTestProbe[TypedCheckout.Command]()
 
     cartActor ! AddItem("item1")
     cartActor ! StartCheckout(testKit.createTestProbe[TypedCartActor.Event]().ref)
 
-    orderManagerProbe.expectMessageType[OrderManager.ConfirmCheckoutStarted]
+//    cartActorProbe.expectMessage(TypedCartActor.CheckoutStarted(checkoutProbe.ref))
   }
 }
