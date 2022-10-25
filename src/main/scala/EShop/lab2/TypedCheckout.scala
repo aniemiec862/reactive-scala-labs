@@ -26,7 +26,7 @@ object TypedCheckout {
 
   sealed trait Event
   case object CheckOutClosed                           extends Event
-  case class PaymentStarted(paymentRef: ActorRef[Any]) extends Event
+  case class PaymentStarted(paymentRef: ActorRef[Payment.Command]) extends Event
 
   def apply(cartActor: ActorRef[TypedCartActor.Command]): Behavior[TypedCheckout.Command] = Behaviors.setup(
     _ => {
@@ -73,7 +73,7 @@ class TypedCheckout(
         timer.cancel()
         this.orderManagerRef = orderManagerRef
         val paymentRef = context.spawn(Payment(payment, orderManagerRef, context.self), "payment")
-        orderManagerRef ! OrderManager.ConfirmPaymentStarted(paymentRef)
+        orderManagerRef ! PaymentStarted(paymentRef)
         processingPayment(context.scheduleOnce(paymentTimerDuration, context.self, ExpirePayment))
     }
   )

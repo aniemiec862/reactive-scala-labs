@@ -85,7 +85,6 @@ class OrderManager {
 
   def inPayment(senderRef: ActorRef[Ack]): Behavior[OrderManager.Command] = Behaviors.receiveMessage {
     case OrderManager.ConfirmPaymentStarted(paymentRef) =>
-      senderRef ! Done
       inPayment(paymentRef, senderRef)
     case ConfirmPaymentReceived =>
       senderRef ! Done
