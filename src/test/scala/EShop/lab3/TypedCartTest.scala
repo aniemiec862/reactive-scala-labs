@@ -1,7 +1,6 @@
 package EShop.lab3
 
-import EShop.lab2.{Cart, TypedCartActor, TypedCheckout}
-import akka.actor.testkit.typed.Effect.{Spawned, TimerCancelled, TimerScheduled}
+import EShop.lab2.{Cart, TypedCartActor}
 import akka.actor.testkit.typed.scaladsl.{BehaviorTestKit, ScalaTestWithActorTestKit, TestInbox}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
