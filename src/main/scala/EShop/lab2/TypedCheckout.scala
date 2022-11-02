@@ -3,10 +3,10 @@ package EShop.lab2
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import scala.language.postfixOps
 
+import scala.language.postfixOps
 import scala.concurrent.duration._
-import EShop.lab3.OrderManager
+import EShop.lab3.{OrderManager, Payment}
 
 object TypedCheckout {
 
@@ -27,6 +27,12 @@ object TypedCheckout {
   sealed trait Event
   case object CheckOutClosed                           extends Event
   case class PaymentStarted(paymentRef: ActorRef[Any]) extends Event
+
+  def apply(cartActor: ActorRef[TypedCartActor.Command]): Behavior[TypedCheckout.Command] = Behaviors.setup(
+    _ => {
+      new TypedCheckout(cartActor).start
+    }
+  )
 }
 
 class TypedCheckout(
@@ -36,6 +42,8 @@ class TypedCheckout(
 
   val checkoutTimerDuration: FiniteDuration = 1 seconds
   val paymentTimerDuration: FiniteDuration  = 1 seconds
+
+  var orderManagerRef: ActorRef[OrderManager.Command] = _
 
   def start: Behavior[TypedCheckout.Command] = Behaviors.receive((context, msg) =>
     msg match {
@@ -61,10 +69,12 @@ class TypedCheckout(
         cancelled
       case ExpireCheckout =>
         cancelled
-      case SelectPayment(_) =>
+      case SelectPayment(payment: String, orderManagerRef: ActorRef[OrderManager.Command]) =>
         timer.cancel()
+        this.orderManagerRef = orderManagerRef
+        val paymentRef = context.spawn(Payment(payment, orderManagerRef, context.self), "payment")
+        orderManagerRef ! OrderManager.ConfirmPaymentStarted(paymentRef)
         processingPayment(context.scheduleOnce(paymentTimerDuration, context.self, ExpirePayment))
-
     }
   )
   def processingPayment(timer: Cancellable): Behavior[TypedCheckout.Command] = Behaviors.receiveMessage {
@@ -75,6 +85,7 @@ class TypedCheckout(
       cancelled
     case ConfirmPaymentReceived =>
       timer.cancel()
+      cartActor ! TypedCartActor.ConfirmCheckoutClosed
       closed
   }
 
