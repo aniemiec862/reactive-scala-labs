@@ -41,10 +41,14 @@ class PersistentCheckout {
         }
       case SelectingDelivery(_) =>
         command match {
-          case SelectDeliveryMethod(method) => Effect.persist(DeliveryMethodSelected(method))
-          case ExpireCheckout => Effect.persist(CheckoutCancelled)
-          case CancelCheckout => Effect.persist(CheckoutCancelled)
-          case _ => Effect.none
+          case SelectDeliveryMethod(method) =>
+            Effect.persist(DeliveryMethodSelected(method))
+          case ExpireCheckout =>
+            Effect.persist(CheckoutCancelled)
+          case CancelCheckout =>
+            Effect.persist(CheckoutCancelled)
+          case _ =>
+            Effect.none
         }
       case SelectingPaymentMethod(_) =>
         command match {
@@ -54,9 +58,12 @@ class PersistentCheckout {
             Effect
               .persist(PaymentStarted(paymentRef))
               .thenRun(_ => orderManagerRef ! PaymentStarted(paymentRef))
-          case ExpireCheckout => Effect.persist(CheckoutCancelled)
-          case CancelCheckout => Effect.persist(CheckoutCancelled)
-          case _ => Effect.none
+          case ExpireCheckout =>
+            Effect.persist(CheckoutCancelled)
+          case CancelCheckout =>
+            Effect.persist(CheckoutCancelled)
+          case _ =>
+            Effect.none
         }
       case ProcessingPayment(_) =>
         command match {
@@ -64,22 +71,32 @@ class PersistentCheckout {
             Effect
               .persist(CheckOutClosed)
               .thenRun(_ => cartActor ! TypedCartActor.ConfirmCheckoutClosed)
-          case ExpirePayment => Effect.persist(CheckoutCancelled)
-          case CancelCheckout => Effect.persist(CheckoutCancelled)
-          case _ => Effect.none
+          case ExpirePayment =>
+            Effect.persist(CheckoutCancelled)
+          case CancelCheckout =>
+            Effect.persist(CheckoutCancelled)
+          case _ =>
+            Effect.none
         }
-      case Cancelled => Effect.none
-      case Closed => Effect.none
+      case Cancelled =>
+        Effect.none
+      case Closed =>
+        Effect.none
     }
   }
 
   def eventHandler(context: ActorContext[Command]): (State, Event) => State = (_, event) => {
     event match {
-      case CheckoutStarted => SelectingDelivery(schedule(context, ExpireCheckout))
-      case DeliveryMethodSelected(_) => SelectingPaymentMethod(schedule(context, ExpirePayment))
-      case PaymentStarted(_) => ProcessingPayment(schedule(context, ExpirePayment))
-      case CheckOutClosed => Closed
-      case CheckoutCancelled => Cancelled
+      case CheckoutStarted =>
+        SelectingDelivery(schedule(context, ExpireCheckout))
+      case DeliveryMethodSelected(_) =>
+        SelectingPaymentMethod(schedule(context, ExpirePayment))
+      case PaymentStarted(_) =>
+        ProcessingPayment(schedule(context, ExpirePayment))
+      case CheckOutClosed =>
+        Closed
+      case CheckoutCancelled =>
+        Cancelled
     }
   }
 }
