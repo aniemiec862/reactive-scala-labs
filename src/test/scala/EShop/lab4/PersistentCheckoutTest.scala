@@ -237,4 +237,69 @@ class PersistentCheckoutTest
     resultCancelCheckout.hasNoEvents shouldBe true
     resultCancelCheckout.state shouldBe Closed
   }
+
+  it should "be in cancelled state after expire checkout timeout and restarting" in {
+    val resultStartCheckout = eventSourcedTestKit.runCommand(StartCheckout)
+
+    resultStartCheckout.event shouldBe CheckoutStarted
+    resultStartCheckout.state.isInstanceOf[SelectingDelivery] shouldBe true
+
+    val restartResult = eventSourcedTestKit.restart()
+
+    Thread.sleep(2000)
+    restartResult.state.isInstanceOf[SelectingDelivery] shouldBe true
+
+    val resultSelectDeliveryMethod = eventSourcedTestKit.runCommand(SelectDeliveryMethod("DHL"))
+
+    resultSelectDeliveryMethod.hasNoEvents shouldBe true
+    resultSelectDeliveryMethod.state shouldBe Cancelled
+  }
+
+  it should "be in cancelled state after expire payment timeout and restarting" in {
+    val resultStartCheckout = eventSourcedTestKit.runCommand(StartCheckout)
+
+    resultStartCheckout.event shouldBe CheckoutStarted
+    resultStartCheckout.state.isInstanceOf[SelectingDelivery] shouldBe true
+
+    val resultSelectDeliveryMethod = eventSourcedTestKit.runCommand(SelectDeliveryMethod("DHL"))
+
+    resultSelectDeliveryMethod.event shouldBe DeliveryMethodSelected("DHL")
+    resultSelectDeliveryMethod.state.isInstanceOf[SelectingPaymentMethod] shouldBe true
+
+    val restartResult = eventSourcedTestKit.restart()
+
+    Thread.sleep(2000)
+    restartResult.state.isInstanceOf[SelectingPaymentMethod] shouldBe true
+
+    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment("cash", orderManagerProbe.ref))
+
+    resultSelectPayment.hasNoEvents shouldBe true
+    resultSelectPayment.state shouldBe Cancelled
+  }
+
+  it should "be in closed state after completing payment and restarting" in {
+    val resultStartCheckout = eventSourcedTestKit.runCommand(StartCheckout)
+
+    resultStartCheckout.event shouldBe CheckoutStarted
+    resultStartCheckout.state.isInstanceOf[SelectingDelivery] shouldBe true
+
+    val resultSelectDeliveryMethod = eventSourcedTestKit.runCommand(SelectDeliveryMethod("DHL"))
+
+    resultSelectDeliveryMethod.event shouldBe DeliveryMethodSelected("DHL")
+    resultSelectDeliveryMethod.state.isInstanceOf[SelectingPaymentMethod] shouldBe true
+
+    val resultSelectPayment = eventSourcedTestKit.runCommand(SelectPayment("cash", orderManagerProbe.ref))
+
+    resultSelectPayment.event.isInstanceOf[PaymentStarted] shouldBe true
+    resultSelectPayment.state.isInstanceOf[ProcessingPayment] shouldBe true
+
+    val resultReceivePayment = eventSourcedTestKit.runCommand(ConfirmPaymentReceived)
+
+    resultReceivePayment.event shouldBe CheckOutClosed
+    resultReceivePayment.state shouldBe Closed
+
+    val restartResult = eventSourcedTestKit.restart()
+
+    restartResult.state shouldBe Closed
+  }
 }
