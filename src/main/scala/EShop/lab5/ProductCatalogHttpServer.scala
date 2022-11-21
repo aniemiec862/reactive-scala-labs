@@ -16,7 +16,7 @@ import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, RootJsonF
 import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 import scala.concurrent.duration.{Duration, DurationInt}
 
-trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
+trait ProductCatalogJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val uriFormat = new JsonFormat[java.net.URI] {
     override def write(obj: java.net.URI): spray.json.JsValue = JsString(obj.toString)
 
@@ -36,7 +36,7 @@ object ProductCatalogHttpServerApp extends App {
 }
 
 case class ProductCatalogHttpServer(queryRef: ActorRef[ProductCatalog.Query])(implicit val scheduler: Scheduler)
-  extends JsonSupport {
+  extends ProductCatalogJsonSupport {
   implicit val timeout: Timeout = 3.second
 
   def routes: Route = {
