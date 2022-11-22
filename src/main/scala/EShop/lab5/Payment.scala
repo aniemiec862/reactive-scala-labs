@@ -18,6 +18,8 @@ object Payment {
 
   val restartStrategy: RestartSupervisorStrategy = SupervisorStrategy.restart.withLimit(maxNrOfRetries = 3, withinTimeRange = 1.second)
 
+  val stopStrategy: SupervisorStrategy = SupervisorStrategy.stop
+
   def apply(
     method: String,
     orderManager: ActorRef[OrderManager.Command],
@@ -28,12 +30,16 @@ object Payment {
         (context, msg) =>
           msg match {
             case DoPayment =>
-              val adapter = context.messageAdapter[PaymentService.Response] {
-                case response @ PaymentService.PaymentSucceeded => WrappedPaymentServiceResponse(response)
+              val adapter: ActorRef[PaymentService.Response] = context.messageAdapter {
+                case PaymentSucceeded =>
+                  WrappedPaymentServiceResponse(PaymentSucceeded)
               }
+
               val paymentService = Behaviors
-                .supervise(PaymentService(method, adapter))
-                .onFailure(restartStrategy)
+                .supervise(Behaviors
+                  .supervise(PaymentService(method, adapter))
+                  .onFailure[PaymentService.PaymentServerError](stopStrategy))
+                .onFailure[PaymentService.PaymentClientError](restartStrategy)
               val paymentServiceRef = context.spawnAnonymous(paymentService)
               context.watch(paymentServiceRef)
               Behaviors.same

@@ -23,7 +23,6 @@ object PaymentService {
     method: String,
     payment: ActorRef[Response]
   ): Behavior[HttpResponse] = Behaviors.setup { context =>
-    implicit val executionContext: ExecutionContextExecutor = context.executionContext
     val http = Http(context.system)
     val result = http.singleRequest(HttpRequest(uri = getURI(method)))
     context.pipeToSelf(result) {
